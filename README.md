@@ -88,6 +88,8 @@ GROQ_API_KEY=your_key_here
 
 Both are required — the app raises on startup without them. `.env` is gitignored; never commit it.
 
+Running with a shared/public link instead of just locally? You can set `GROQ_API_KEYS` (comma-separated) instead of a single `GROQ_API_KEY` to rotate across multiple Groq accounts — see [docs/deployment.md](docs/deployment.md).
+
 LangSmith tracing is optional and off by default — set both `LANGSMITH_TRACING=true` and `LANGSMITH_API_KEY` to switch it on. The in-app trace panel and dashboard work either way. See [docs/observability.md](docs/observability.md).
 
 ### 3. Load the dataset into Postgres
@@ -151,6 +153,12 @@ Captured runs live in [docs/evidence/](docs/evidence/).
 
 ---
 
+## Deployment
+
+Free-tier stack: **Render** (backend) + **Vercel** (frontend) + **Neon** (Postgres, same database as local dev). Config is already in the repo — `render.yaml` and `frontend/vercel.json`. Full walkthrough, the Groq-quota caveats, and what to do if you don't have admin rights on this repo: [docs/deployment.md](docs/deployment.md).
+
+---
+
 ## Project Structure
 
 ```
@@ -162,6 +170,7 @@ src/
   Agent_1.py             prototype agent (RAG only)
   Agent_2.py             earlier agent: routing, RAG, local tool stubs
   Agent_3.py             current agent: routing, RAG, MCP client, memory, guardrails
+  groq_router.py         rotates across GROQ_API_KEYS so no single account's daily quota caps a public deploy
   memory.py              shopper preference store
   observability.py       per-request trace + LangSmith wiring
   dashboard.py           aggregates traces: tool failure rate, guardrail hits, cache, latency
@@ -172,9 +181,10 @@ src/
   Shopsage_RAG_Demo2.py  Gradio UI over Agent_3
 backend/main.py    FastAPI: /api/login, /api/chat, /api/memory, /api/health,
                    /api/dashboard, /api/dashboard/reset
-frontend/          React + Vite chat UI
+frontend/          React + Vite chat UI · vercel.json (prod API rewrite)
+render.yaml        Render blueprint for the backend (free-tier deploy)
 docs/              team · data · tools · memory · observability · error analysis
-                   demo script · evidence · pitch deck
+                   demo script · evidence · pitch deck · deployment
 tests/             retrieval · tool · trace · prompt tests + eval_suite
 ```
 
@@ -192,6 +202,7 @@ Product images are served from `frontend/public/images/` and referenced by SKU.
 | [docs/observability.md](docs/observability.md) | Trace shape, event kinds, LangSmith setup |
 | [docs/error_analysis.md](docs/error_analysis.md) | Known failure modes and fixes |
 | [docs/demo_script.md](docs/demo_script.md) | Walkthrough script for the demo |
+| [docs/deployment.md](docs/deployment.md) | Free-tier hosting (Render + Vercel), multi-key Groq rotation, rate limiting |
 | [docs/team.md](docs/team.md) | Team roles, stack, sign-offs |
 
 ## Team
